@@ -1,4 +1,9 @@
 baseURL = "https://rookian.com/"
 languageCode = "en-us"
-title = "Rookian's blog: Complexitiy through simplicity"
+title = "Rookian.com"
 theme = "beautifulhugo"
+
+
+[Params]
+  logo = "img/php.jpg"
+  subtitle = "Complexity through simplicity"

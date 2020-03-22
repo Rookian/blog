@@ -1,10 +1,11 @@
 ---
-title: "Dependency Injection Explained"
+title: "Dependency Injection"
+subtitle: "Explained"
 date: 2020-03-22T17:11:03+01:00
+tags: ["DependencyInjection", "Software", "Design"]
 draft: true
 ---
 
-#Depedency Injection explained
 A while ago, I answered several questions on Stackoverflow about Dependency Injection. To get my blog started, I thought to reuse my given answers in this blog post.
 
 DIP means that you program against an abstraction. You invert the kind of a dependency from an implementation to an abstraction.
