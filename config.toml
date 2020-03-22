@@ -1,0 +1,4 @@
+baseURL = "https://rookian.com/"
+languageCode = "en-us"
+title = "Rookian's blog: Complexitiy through simplicity"
+theme = "beautifulhugo"
