@@ -1,4 +1,4 @@
-baseURL = "rookian.netlify.com"
+baseURL = "/"
 languageCode = "en-us"
 title = "Rookian.com"
 theme = "beautifulhugo"
