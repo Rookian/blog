@@ -6,7 +6,7 @@ tags: ["DependencyInjection", "Software", "Design"]
 draft: true
 ---
 
-A while ago, I answered several questions on Stackoverflow about Dependency Injection. To get my blog started, I thought to reuse my given answers in this blog post.
+A long time ago, I answered several questions on Stackoverflow about Dependency Injection. To get my blog started, I thought to reuse my given answers in this blog post.
 
 ![solid](/img/solid.png)
 
