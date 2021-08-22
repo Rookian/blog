@@ -15,22 +15,22 @@ So my next question was how I can change the stack of an App Service using Pulum
 
 I am used to use the C# Azure SDK where you could set the stack like this
 
-{{< highlight csharp >}}
+```csharp
     .WithRuntimeStack(WebAppRuntimeStack.NETCore);
-{{< / highlight >}}
+```
 
 But as I mentioned this is not option when you use Pulumi. So I thought  the problem might be in how I publish my web app.
 
 Basically I did the following
-{{< highlight csharp >}}
+```csharp
 dotnet publish -c Release -r win10-x64
-{{< / highlight >}}
+```
 
 That's the crux of the matter. You may not define the runtime using -r.
 
-{{< highlight csharp >}}
+```csharp
 dotnet publish -c Release
-{{< / highlight >}}
+```
 Witout specifying the runtime you get all runtimes in a separate runtimes folder as part of your publish result.
 
 If you deploy that, everything is going to work.
