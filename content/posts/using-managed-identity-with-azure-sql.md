@@ -58,7 +58,7 @@ var sqlServer = new Server("myServer", new ServerArgs
     ResourceGroupName = resourceGroup.Name,
 });
 
-new Database("myDb", new DatabaseArgs
+var database = new Database("myDb", new DatabaseArgs
 {
     ResourceGroupName = resourceGroup.Name,
     ServerName = sqlServer.Name,
@@ -66,7 +66,7 @@ new Database("myDb", new DatabaseArgs
 });
 ```
 
-> You might wonder, why we need to define a user name and password. Well, `AdministratorLogin` and `AdministratorLoginPassword` are required in order create an Azure SQL Server. But we won't use those credentials.
+> ❗  `AdministratorLogin` and `AdministratorLoginPassword` are required in order create an Azure SQL Server. But we won't use those credentials.
 
 Now we can register the Managed Identity from the App Service to the Azure Sql Server.
 
@@ -82,3 +82,95 @@ ALTER ROLE db_datareader ADD MEMBER [myApp]
 ```
 
 ![Provisioningprocess](/img/Provisioningprocess.jpg)
+
+Running the SQL script on your **local development environment** is going to work fine whereas running it on a CI server like Azure Devops using a service principal is going to fail.
+To be able to successfully execute `CREATE USER [myApp] FROM EXTERNAL PROVIDER` with a service principal you have to the following:
+- Create a Managed Identity for your Azure SQL Server
+- Set your deployment service principal as an administrator
+- Assign the Azure SQL Server identity to Azure AD [Directory readers role](https://docs.microsoft.com/en-us/azure/active-directory/roles/permissions-reference#directory-readers). 
+
+```csharp
+var sqlServer = new Server("myServer", new ServerArgs
+{
+    AdministratorLogin = "myloginforsql",
+    AdministratorLoginPassword = "passWord123@123", // TODO encrypt this password
+    ResourceGroupName = resourceGroup.Name,
+
+    // Create System-Assigned Managed Identity
+    Identity = new ResourceIdentityArgs { Type = IdentityType.SystemAssigned },
+
+    // Add your deployment service principal as an administrator
+    Administrators = new ServerExternalAdministratorArgs
+    {
+        PrincipalType = PrincipalType.Application,
+        Login = "Your deployment service principal name",
+        Sid = "Yor deployment service principal ObjectId"
+    }
+});
+```
+
+As the chances are high that your service principal might not be able to assign an Azure AD principal to the Directory readers role, I would suggest to create a separate Azure Ad group by your Azure Ad administrator manually. Let your admistrator assign that group group to Directory readers and make your service principal an owner of that group. With this setup you can self-manage the given group and can add your Azure SQL Server Managed Identity. 
+
+> ❗ For local development your personal account should also be an owner of that group.
+
+```csharp
+new GroupMember("DirectoryReadersGroup", new GroupMemberArgs
+{
+    GroupObjectId = "ObjectId of your group",
+    MemberObjectId = sqlServer.Identity.Apply(x => x.PrincipalId)
+});
+```
+
+Now you can create a `SQLConnection` without any credentials using [Azure Active Directory Authentication](https://docs.microsoft.com/en-us/sql/connect/ado-net/sql/azure-active-directory-authentication?view=sql-server-ver16).
+
+```csharp
+
+public class MyStack : Stack
+{
+  // define some output variables in your stack
+  [Output]
+  public Output<string> SqlConnectionString { get; set; }
+
+  [Output]
+  public Output<string> WebAppManagedIdentity { get; set; }
+
+...
+  public MyStack(StackConfig config, ICryptoService cryptoService)
+  {
+    ...
+
+    // Assign output variables
+    WebAppManagedIdentity = webApp.Name;
+    SqlConnectionString = Output.Format($"Server=tcp:{sqlServer.Name}.database.windows.net;initial catalog={database.Name};Authentication=Active Directory Default;");
+  }
+}
+```
+
+After you run your stack using 
+```csharp
+var result = await stack.UpAsync(new UpOptions { OnStandardOutput = Console.WriteLine });
+```
+
+you can add your WebApp Managed Identity to your SQL Server.
+```csharp
+var sqlConnectionString = result.Outputs[nameof(MyStack.SqlConnectionString)].Value.ToString();
+var webAppManagedIdentity = result.Outputs[nameof(MyStack.WebAppManagedIdentity)].Value.ToString();
+
+await CreateUser(sqlConnectionString, webAppManagedIdentity);
+// optionally add your personal account
+await CreateUser(sqlConnectionString, "Your personal e-mail address");
+
+private static async Task CreateUser(string sqlConnectionString, string principal)
+{
+    var sqlConnection = new SqlConnection(sqlConnectionString);
+    await sqlConnection.OpenAsync();
+    var sqlCommand = sqlConnection.CreateCommand();
+    var stringBuilder = new StringBuilder();
+    stringBuilder.AppendLine($"IF DATABASE_PRINCIPAL_ID('{principal}') IS NULL");
+    stringBuilder.AppendLine("BEGIN");
+    stringBuilder.AppendLine($"\tCREATE USER [{principal}] FROM EXTERNAL PROVIDER");
+    stringBuilder.AppendLine("End");
+    sqlCommand.CommandText = stringBuilder.ToString();
+    await sqlCommand.ExecuteNonQueryAsync();
+}
+```
