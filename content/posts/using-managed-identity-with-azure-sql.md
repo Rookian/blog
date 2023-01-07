@@ -46,8 +46,6 @@ new WebApp("myApp", new WebAppArgs
 });
 ```
 
-A System-Assigned Managed Identity is an identity that is created by Azure based on the given Azure resource. It will be named exactly the same as the resource. It's lifetime is also bound to the correspondign Azure resource. You can find more about this top [here](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview#managed-identity-types).
-
 **2. Grant Managed Identity access to Azure SQL**
 Before we can grant access to a SQL Server, we ofc first need to create one with a database:
 ```csharp
@@ -66,9 +64,9 @@ var database = new Database("myDb", new DatabaseArgs
 });
 ```
 
-> ❗  `AdministratorLogin` and `AdministratorLoginPassword` are required in order create an Azure SQL Server. But we won't use those credentials.
+> ⚠ **Important**  `AdministratorLogin` and `AdministratorLoginPassword` are required in order create an Azure SQL Server. But we won't use those credentials.
 
-Now we can register the Managed Identity from the App Service to the Azure Sql Server.
+Now we can register the Managed Identity of the App Service with the following SQL script.
 
 ```sql
 -- myApp is the name of the Managed Identity/App Service
@@ -111,7 +109,7 @@ var sqlServer = new Server("myServer", new ServerArgs
 
 As the chances are high that your service principal might not be able to assign an Azure AD principal to the Directory readers role, I would suggest to create a separate Azure Ad group by your Azure Ad administrator manually. Let your admistrator assign that group group to Directory readers and make your service principal an owner of that group. With this setup you can self-manage the given group and can add your Azure SQL Server Managed Identity. 
 
-> ❗ For local development your personal account should also be an owner of that group.
+> ⚠ **Important** For local development your personal account should also be an owner of that group.
 
 ```csharp
 new GroupMember("DirectoryReadersGroup", new GroupMemberArgs
