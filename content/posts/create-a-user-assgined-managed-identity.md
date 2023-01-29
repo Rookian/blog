@@ -1,8 +1,17 @@
 ---
 title: "Create a User Assgined Managed Identity"
-date: 2022-07-05T11:15:47+02:00
+date: 2023-01-29T13:15:47+01:00
 draft: false
 tags: ["Azure", "Azure SDK", "Managed Identity", "User-assgined", "AzureAD"]
+---
+---
+Previous blog post in the series: [Introduction to Managed Identities](/posts/introduction-to-managed-identities)
+
+Posts in this series:
+- [Introduction to Managed Identities](/posts/introduction-to-managed-identities)
+- [Create a user-assigned Managed Identity](/posts/create-a-user-assgined-managed-identity) 
+- Using Managed Identity with Azure SQL (coming soon)
+- Machine to Machine authentication (coming soon)
 ---
 With the new [Azure SDK Management Libraries](https://azure.github.io/azure-sdk/releases/latest/mgmt/dotnet.html) I have had the requirement to create a user-assgined Identity. Unfortunately there is no easy way in the new SDK to do so. So I created my own little helper method.
 
