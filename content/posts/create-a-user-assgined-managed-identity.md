@@ -1,6 +1,6 @@
 ---
 title: "Create a User Assgined Managed Identity"
-date: 2023-01-29T13:15:47+01:00
+date: 2023-01-29T13:16:47+01:00
 draft: false
 tags: ["Azure", "Azure SDK", "Managed Identity", "User-assgined", "AzureAD"]
 ---
